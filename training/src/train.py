@@ -155,8 +155,10 @@ def main(argv=None):
         saver = tf.train.Saver(max_to_keep=100)
 
         tf.summary.scalar("learning_rate", learning_rate)
-        tf.summary.scalar("loss", loss)
-        tf.summary.scalar("loss_lastlayer_heat", last_heat_loss)
+        tf.summary.scalar("loss", loss, family='train')
+        tf.summary.scalar("loss_lastlayer_heat", last_heat_loss, family='train')
+        tf.summary.scalar("loss", valid_loss, family='eval')
+        tf.summary.scalar("loss_lastlayer_heat", valid_last_heat_loss, family='eval')
         summary_merge_op = tf.summary.merge_all()
 
         pred_result_image = tf.placeholder(tf.float32, shape=[params['batchsize'], 480, 640, 3])
@@ -166,6 +168,7 @@ def main(argv=None):
         config = tf.ConfigProto()
         # occupy gpu gracefully
         config.gpu_options.allow_growth = True
+        config.allow_soft_placement = True
         with tf.Session(config=config) as sess:
             init.run()
 
@@ -183,12 +186,10 @@ def main(argv=None):
                 duration = time.time() - start_time
 
                 if step != 0 and step % params['per_update_tensorboard_step'] == 0:
+                    valid_loss_value, valid_lh_loss, valid_in_image, valid_in_heat, valid_p_heat = sess.run(
+                        [valid_loss, valid_last_heat_loss, valid_input_image, valid_input_heat, valid_pred_heat])
                     # False will speed up the training time.
                     if params['pred_image_on_tensorboard'] is True:
-
-                        valid_loss_value, valid_lh_loss, valid_in_image, valid_in_heat, valid_p_heat = sess.run(
-                            [valid_loss, valid_last_heat_loss, valid_input_image, valid_input_heat, valid_pred_heat]
-                        )
 
                         result = []
                         for index in range(params['batchsize']):
