@@ -24,8 +24,8 @@ import multiprocessing
 
 BASE = "/root/hdd"
 BASE_PATH = ""
-TRAIN_JSON = "ai_challenger_train.json"
-VALID_JSON = "ai_challenger_valid.json"
+TRAIN_JSON = "train.json"
+VALID_JSON = "valid.json"
 
 TRAIN_ANNO = None
 VALID_ANNO = None
@@ -64,8 +64,7 @@ def _parse_function(imgId, is_train, ann=None):
     img_anno = anno.loadAnns(anno_ids)
     idx = img_meta['id']
     img_path = join(BASE, img_meta['file_name'])
-
-    img_meta_data = CocoMetadata(idx, img_path, img_meta, img_anno, sigma=6.0)
+    img_meta_data = CocoMetadata(idx, img_path, img_meta, img_anno, sigma=3.0)
     img_meta_data = pose_random_scale(img_meta_data)
     img_meta_data = pose_rotation(img_meta_data)
     img_meta_data = pose_flip(img_meta_data)
@@ -88,7 +87,7 @@ def _get_dataset_pipeline(anno, batch_size, epoch, buffer_size, is_train=True):
     dataset = tf.data.Dataset.from_tensor_slices(imgIds)
 
     if is_train:
-        dataset.shuffle(batch_size*10)
+        dataset.shuffle(buffer_size)
 
     dataset = dataset.map(
         lambda imgId: tuple(

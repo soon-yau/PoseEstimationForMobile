@@ -117,7 +117,7 @@ def main(argv=None):
 
         global_step = tf.Variable(0, trainable=False)
         learning_rate = tf.train.exponential_decay(float(params['lr']), global_step,
-                                                   decay_steps=10000, decay_rate=float(params['decay_rate']), staircase=True)
+                                                   decay_steps=100, decay_rate=float(params['decay_rate']), staircase=True)
         opt = tf.train.AdamOptimizer(learning_rate, epsilon=1e-8)
         tower_grads = []
         reuse_variable = False
@@ -135,14 +135,15 @@ def main(argv=None):
                                                                                             valid_input_image, valid_input_heat, reuse_variable)
 
         grads = average_gradients(tower_grads)
+        apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
+        '''
         for grad, var in grads:
             if grad is not None:
                 tf.summary.histogram("gradients_on_average/%s" % var.op.name, grad)
 
-        apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
         for var in tf.trainable_variables():
             tf.summary.histogram(var.op.name, var)
-
+        '''
         MOVING_AVERAGE_DECAY = 0.99
         variable_averages = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY, global_step)
         variable_to_average = (tf.trainable_variables() + tf.moving_average_variables())
