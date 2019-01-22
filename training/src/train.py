@@ -117,7 +117,7 @@ def main(argv=None):
 
         global_step = tf.Variable(0, trainable=False)
         learning_rate = tf.train.exponential_decay(float(params['lr']), global_step,
-                                                   decay_steps=100, decay_rate=float(params['decay_rate']), staircase=True)
+                                                   decay_steps=10000, decay_rate=float(params['decay_rate']), staircase=True)
         opt = tf.train.AdamOptimizer(learning_rate, epsilon=1e-8)
         tower_grads = []
         reuse_variable = False
