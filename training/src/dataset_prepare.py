@@ -88,7 +88,7 @@ class CocoMetadata:
             ys = kp[1::3]
             vs = kp[2::3]
 
-            joint_list.append([(x, y) if v >= 1 else (-1000, -1000) for x, y, v in zip(xs, ys, vs)])
+            joint_list.append([(x, y) if v > 1 else (-1000, -1000) for x, y, v in zip(xs, ys, vs)])
 
         self.joint_list = []
         transform = list(zip(
