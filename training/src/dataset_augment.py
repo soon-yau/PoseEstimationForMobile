@@ -127,16 +127,22 @@ def pose_flip(meta):
                  CocoPart.LHip, CocoPart.LKnee, CocoPart.LAnkle, CocoPart.RHip, CocoPart.RKnee, CocoPart.RAnkle
                  ]
     adjust_joint_list = []
+    # for each visible joint
     for joint in meta.joint_list:
         adjust_joint = []
+        # for each body joint
         for cocopart in flip_list:
+            # get the coordinate of visible joint
             point = joint[cocopart.value]
+            # if out of frame, ignore
             if point[0] < -100 or point[1] < -100:
                 adjust_joint.append((-1000, -1000))
                 continue
             # if point[0] <= 0 or point[1] <= 0:
             #     adjust_joint.append((-1, -1))
             #     continue
+
+            # otherwise flip it
             adjust_joint.append((meta.width - point[0], point[1]))
         adjust_joint_list.append(adjust_joint)
 
@@ -271,6 +277,11 @@ def pose_crop_random(meta):
                 break
     return pose_crop(meta, x, y, target_size[0], target_size[1])
 
+def pose_resize(meta):
+    global _network_w, _network_h
+    dst = cv2.resize(meta.img, (_network_w, _network_h), 
+                    interpolation=cv2.INTER_AREA)
+    return dst
 
 def pose_to_img(meta_l):
     global _network_w, _network_h, _scale
