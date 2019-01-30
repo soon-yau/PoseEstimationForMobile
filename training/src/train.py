@@ -172,6 +172,12 @@ def main(argv=None):
         config.allow_soft_placement = True
         with tf.Session(config=config) as sess:
             init.run()
+            saved_checkpoint = params['checkpoint']
+            if saved_checkpoint:
+                saver.restore(sess, saved_checkpoint)
+                print(saved_checkpoint, "Model restored.")
+            else:
+                print("Training from scratch")
 
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess, coord=coord)
