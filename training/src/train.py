@@ -87,7 +87,8 @@ def main(argv=None):
     config.read(config_file)
     for _ in config.options("Train"):
         params[_] = eval(config.get("Train", _))
-
+    
+    saved_checkpoint = params['checkpoint']
     os.environ['CUDA_VISIBLE_DEVICES'] = params['visible_devices']
 
     gpus_index = params['visible_devices'].split(",")
@@ -128,7 +129,12 @@ def main(argv=None):
                 with tf.name_scope("GPU_%d" % i):
                     loss, last_heat_loss, pred_heat = get_loss_and_output(params['model'], params['batchsize'], input_image, input_heat, reuse_variable)
                     reuse_variable = True
-                    grads = opt.compute_gradients(loss)
+                    train_vars = None if not saved_checkpoint else \
+                                    tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 
+                                                    scope='Convolutional_Pose_Machine')
+
+                    print("train_vars", train_vars)                    
+                    grads = opt.compute_gradients(loss, train_vars)
                     tower_grads.append(grads)
 
                     valid_loss, valid_last_heat_loss, valid_pred_heat = get_loss_and_output(params['model'], params['batchsize'],
@@ -150,6 +156,7 @@ def main(argv=None):
         variables_averages_op = variable_averages.apply(variable_to_average)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
         with tf.control_dependencies(update_ops):
             train_op = tf.group(apply_gradient_op, variables_averages_op)
 
@@ -172,7 +179,6 @@ def main(argv=None):
         config.allow_soft_placement = True
         with tf.Session(config=config) as sess:
             init.run()
-            saved_checkpoint = params['checkpoint']
             if saved_checkpoint:
                 saver.restore(sess, saved_checkpoint)
                 print(saved_checkpoint, "Model restored.")
